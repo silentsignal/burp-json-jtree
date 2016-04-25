@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="burp-json-jtree" default="plugin">
+	<target name="plugin" depends="classes">
+		<zip destfile="burp-json-jtree.jar">
+			<fileset dir="build">
+				<include name="burp/BurpExtender.class"/>
+				<include name="burp/JsonJTree.class"/>
+				<include name="mjson/Json*.class"/>
+			</fileset>
+		</zip>
+	</target>
+	<target name="classes">
+		<mkdir dir="build"/>
+		<javac srcdir="src:api" destdir="build" includeantruntime="false" />
+	</target>
+	<target name="clean">
+		<delete dir="build"/>
+		<delete file="burp-json-jtree.jar"/>
+	</target>
+</project>
