@@ -1,6 +1,8 @@
 JSON JTree viewer for Burp Suite
 ================================
 
+![Screenshot](screenshot.png)
+
 Building
 --------
 
