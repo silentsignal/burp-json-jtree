@@ -57,20 +57,34 @@ public class JsonJTree implements IMessageEditorTab
 		expandAllNodes(tree, 0, tree.getRowCount());
 	}
 
+	private static class Node {
+		private final Map.Entry<String, Json> entry;
+
+		Node(Map.Entry<String, Json> entry) {
+			this.entry = entry;
+		}
+
+		@Override
+		public String toString() {
+			final String caption = entry.getKey();
+			final Json value = entry.getValue();
+			if (value.isNull()) {
+				return caption + ": null";
+			} else if (value.isString()) {
+				return caption + ": \"" + value.asString() + '"';
+			} else if (value.isNumber() || value.isBoolean()) {
+				return caption + ": " + value.asString();
+			}
+			return caption;
+		}
+	}
+
 	private void dumpObjectNode(DefaultMutableTreeNode dst, Json src) {
 		Map<String, Json> tm = new TreeMap(String.CASE_INSENSITIVE_ORDER);
 		tm.putAll(src.asJsonMap());
 		for (Map.Entry<String, Json> e : tm.entrySet()) {
-			String caption = e.getKey();
-			Json value = e.getValue();
-			if (value.isNull()) {
-				caption += ": null";
-			} else if (value.isString()) {
-				caption += ": \"" + value.asString() + '"';
-			} else if (value.isNumber() || value.isBoolean()) {
-				caption += ": " + value.asString();
-			}
-			DefaultMutableTreeNode node = new DefaultMutableTreeNode(caption);
+			final Json value = e.getValue();
+			DefaultMutableTreeNode node = new DefaultMutableTreeNode(new Node(e));
 			dst.add(node);
 			if (value.isObject()) {
 				dumpObjectNode(node, value);
