@@ -35,6 +35,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		final TreePath sp = tree.getSelectionPath();
 		if (sp == null) return; // nothing was selected
 		final DefaultMutableTreeNode node = (DefaultMutableTreeNode)sp.getLastPathComponent();
+		if (node == root) return; // disable for root
 		final Node item = (Node)node.getUserObject();
 
 		addToPopup(popup, "Copy key", new ActionListener() {
