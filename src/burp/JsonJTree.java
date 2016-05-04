@@ -128,7 +128,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 			} else if (value.isString()) {
 				return caption + ": \"" + value.asString() + '"';
 			} else if (value.isNumber() || value.isBoolean()) {
-				return caption + ": " + value.asString();
+				return caption + ": " + value.toString();
 			}
 			return caption;
 		}
