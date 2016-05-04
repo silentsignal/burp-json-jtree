@@ -138,15 +138,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		Map<String, Json> tm = new TreeMap(String.CASE_INSENSITIVE_ORDER);
 		tm.putAll(src.asJsonMap());
 		for (Map.Entry<String, Json> e : tm.entrySet()) {
-			final Json value = e.getValue();
-			DefaultMutableTreeNode node =
-				new DefaultMutableTreeNode(new Node(e.getKey(), value));
-			dst.add(node);
-			if (value.isObject()) {
-				dumpObjectNode(node, value);
-			} else if (value.isArray()) {
-				dumpArrayNode(node, value);
-			}
+			processNode(dst, e.getKey(), e.getValue());
 		}
 	}
 
@@ -154,14 +146,18 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		int i = 0;
 		for (Json value : src.asJsonList()) {
 			String key = '[' + String.valueOf(i++) + ']';
-			DefaultMutableTreeNode node =
-				new DefaultMutableTreeNode(new Node(key, value));
-			dst.add(node);
-			if (value.isObject()) {
-				dumpObjectNode(node, value);
-			} else if (value.isArray()) {
-				dumpArrayNode(node, value);
-			}
+			processNode(dst, key, value);
+		}
+	}
+
+	private void processNode(DefaultMutableTreeNode dst, String key, Json value) {
+		final DefaultMutableTreeNode node =
+			new DefaultMutableTreeNode(new Node(key, value));
+		dst.add(node);
+		if (value.isObject()) {
+			dumpObjectNode(node, value);
+		} else if (value.isArray()) {
+			dumpArrayNode(node, value);
 		}
 	}
 
