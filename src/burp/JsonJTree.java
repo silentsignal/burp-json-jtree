@@ -104,33 +104,32 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	}
 
 	private static class Node {
-		private final Map.Entry<String, Json> entry;
+		private String key;
+		private Json value;
 
-		Node(Map.Entry<String, Json> entry) {
-			this.entry = entry;
+		Node(String key, Json value) {
+			this.key = key;
+			this.value = value;
 		}
 
 		public boolean isArrayOrObject() {
-			final Json value = entry.getValue();
 			return value.isArray() || value.isObject();
 		}
 
-		public String asValueString() { return entry.getValue().asString(); }
-		public String asJsonString()  { return entry.getValue().toString(); }
-		public String asKeyString()   { return entry.getKey(); }
+		public String asValueString() { return value.asString(); }
+		public String asJsonString()  { return value.toString(); }
+		public String asKeyString()   { return key; }
 
 		@Override
 		public String toString() {
-			final String caption = entry.getKey();
-			final Json value = entry.getValue();
 			if (value.isNull()) {
-				return caption + ": null";
+				return key + ": null";
 			} else if (value.isString()) {
-				return caption + ": \"" + value.asString() + '"';
+				return key + ": \"" + value.asString() + '"';
 			} else if (value.isNumber() || value.isBoolean()) {
-				return caption + ": " + value.toString();
+				return key + ": " + value.toString();
 			}
-			return caption;
+			return key;
 		}
 	}
 
@@ -139,7 +138,8 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		tm.putAll(src.asJsonMap());
 		for (Map.Entry<String, Json> e : tm.entrySet()) {
 			final Json value = e.getValue();
-			DefaultMutableTreeNode node = new DefaultMutableTreeNode(new Node(e));
+			DefaultMutableTreeNode node =
+				new DefaultMutableTreeNode(new Node(e.getKey(), value));
 			dst.add(node);
 			if (value.isObject()) {
 				dumpObjectNode(node, value);
