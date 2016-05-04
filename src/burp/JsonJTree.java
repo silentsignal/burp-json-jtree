@@ -12,11 +12,11 @@ import mjson.Json;
 
 public class JsonJTree implements IMessageEditorTab
 {
-    private DefaultMutableTreeNode root = new DefaultMutableTreeNode("(JSON root)");
-	private JTree tree = new JTree(root);
-	private DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+    private final DefaultMutableTreeNode root = new DefaultMutableTreeNode("(JSON root)");
+	private final JTree tree = new JTree(root);
+	private final DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
 	private byte[] content;
-	private IExtensionHelpers helpers;
+	private final IExtensionHelpers helpers;
 	private int bodyOffset;
 
 	JsonJTree(IExtensionHelpers helpers) {
