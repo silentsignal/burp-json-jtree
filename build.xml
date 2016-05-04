@@ -4,7 +4,7 @@
 		<zip destfile="burp-json-jtree.jar">
 			<fileset dir="build">
 				<include name="burp/BurpExtender.class"/>
-				<include name="burp/JsonJTree.class"/>
+				<include name="burp/JsonJTree*.class"/>
 				<include name="mjson/Json*.class"/>
 			</fileset>
 		</zip>

@@ -1,16 +1,17 @@
 package burp;
 
-import java.awt.Component;
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.awt.event.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import javax.swing.JScrollPane;
-import javax.swing.JTree;
+import javax.swing.*;
 import javax.swing.tree.*;
 
 import mjson.Json;
 
-public class JsonJTree implements IMessageEditorTab
+public class JsonJTree extends MouseAdapter implements IMessageEditorTab, ClipboardOwner
 {
     private final DefaultMutableTreeNode root = new DefaultMutableTreeNode("(JSON root)");
 	private final JTree tree = new JTree(root);
@@ -22,7 +23,52 @@ public class JsonJTree implements IMessageEditorTab
 	JsonJTree(IExtensionHelpers helpers) {
         tree.getSelectionModel().setSelectionMode
                 (TreeSelectionModel.SINGLE_TREE_SELECTION);
+		tree.addMouseListener(this);
 		this.helpers = helpers;
+	}
+
+	@Override public void mousePressed (MouseEvent e) { if (e.isPopupTrigger()) doPop(e); }
+	@Override public void mouseReleased(MouseEvent e) { if (e.isPopupTrigger()) doPop(e); }
+
+	private void doPop(MouseEvent e) {
+		final JPopupMenu popup = new JPopupMenu();
+		final TreePath sp = tree.getSelectionPath();
+		if (sp == null) return; // nothing was selected
+		final DefaultMutableTreeNode node = (DefaultMutableTreeNode)sp.getLastPathComponent();
+		final Node item = (Node)node.getUserObject();
+
+		addToPopup(popup, "Copy key", new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				copyString(item.asKeyString());
+			}
+		});
+
+		if (!item.isArrayOrObject()) {
+			addToPopup(popup, "Copy value as string", new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					copyString(item.asValueString());
+				}
+			});
+		}
+
+		addToPopup(popup, "Copy value as JSON", new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				copyString(item.asJsonString());
+			}
+		});
+
+		popup.show(e.getComponent(), e.getX(), e.getY());
+	}
+
+	private static void addToPopup(JPopupMenu pm, String title, ActionListener al) {
+		final JMenuItem mi = new JMenuItem(title);
+		mi.addActionListener(al);
+		pm.add(mi);
+	}
+
+	private void copyString(final String value) {
+		Toolkit.getDefaultToolkit().getSystemClipboard()
+			.setContents(new StringSelection(value), this);
 	}
 
 	public boolean isEnabled(byte[] content, boolean isRequest) {
@@ -63,6 +109,15 @@ public class JsonJTree implements IMessageEditorTab
 		Node(Map.Entry<String, Json> entry) {
 			this.entry = entry;
 		}
+
+		public boolean isArrayOrObject() {
+			final Json value = entry.getValue();
+			return value.isArray() || value.isObject();
+		}
+
+		public String asValueString() { return entry.getValue().asString(); }
+		public String asJsonString()  { return entry.getValue().toString(); }
+		public String asKeyString()   { return entry.getKey(); }
 
 		@Override
 		public String toString() {
@@ -130,4 +185,5 @@ public class JsonJTree implements IMessageEditorTab
 	public byte[] getMessage() { return content; }
 	public boolean isModified() { return false; }
 	public byte[] getSelectedData() { return null; }
+	public void lostOwnership(Clipboard aClipboard, Transferable aContents) {}
 }
