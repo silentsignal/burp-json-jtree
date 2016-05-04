@@ -152,15 +152,9 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	private void dumpArrayNode(DefaultMutableTreeNode dst, Json src) {
 		int i = 0;
 		for (Json value : src.asJsonList()) {
-			String caption = '[' + String.valueOf(i++) + ']';
-			if (value.isNull()) {
-				caption = "null";
-			} else if (value.isString()) {
-				caption = '"' + value.asString() + '"';
-			} else if (value.isNumber() || value.isBoolean()) {
-				caption = value.asString();
-			}
-			DefaultMutableTreeNode node = new DefaultMutableTreeNode(caption);
+			String key = '[' + String.valueOf(i++) + ']';
+			DefaultMutableTreeNode node =
+				new DefaultMutableTreeNode(new Node(key, value));
 			dst.add(node);
 			if (value.isObject()) {
 				dumpObjectNode(node, value);
