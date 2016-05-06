@@ -105,8 +105,8 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	}
 
 	private static class Node {
-		private String key;
-		private Json value;
+		private final String key;
+		private final Json value;
 
 		Node(String key, Json value) {
 			this.key = key;
