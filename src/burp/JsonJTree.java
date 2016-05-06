@@ -13,7 +13,7 @@ import mjson.Json;
 
 public class JsonJTree extends MouseAdapter implements IMessageEditorTab, ClipboardOwner
 {
-    private final DefaultMutableTreeNode root = new DefaultMutableTreeNode("(JSON root)");
+    private final DefaultMutableTreeNode root = new DefaultMutableTreeNode();
 	private final JTree tree = new JTree(root);
 	private final DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
 	private byte[] content;
@@ -35,14 +35,15 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		final TreePath sp = tree.getSelectionPath();
 		if (sp == null) return; // nothing was selected
 		final DefaultMutableTreeNode node = (DefaultMutableTreeNode)sp.getLastPathComponent();
-		if (node == root) return; // disable for root
 		final Node item = (Node)node.getUserObject();
 
-		addToPopup(popup, "Copy key", new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				copyString(item.asKeyString());
-			}
-		});
+		if (node != root) {
+			addToPopup(popup, "Copy key", new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					copyString(item.asKeyString());
+				}
+			});
+		}
 
 		if (!item.isArrayOrObject()) {
 			addToPopup(popup, "Copy value as string", new ActionListener() {
@@ -98,7 +99,10 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 			Json node = Json.read(new String(content, bodyOffset,
 						content.length - bodyOffset, StandardCharsets.UTF_8));
 			// TODO UTF-8?
+			root.setUserObject(new Node(null, node));
 			dumpObjectNode(root, node);
+		} else {
+			root.setUserObject(new Node(null, null));
 		}
 		model.reload(root);
 		expandAllNodes(tree, 0, tree.getRowCount());
@@ -123,6 +127,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 
 		@Override
 		public String toString() {
+			if (key == null) return "(JSON root)";
 			if (value.isNull()) {
 				return key + ": null";
 			} else if (value.isString()) {
