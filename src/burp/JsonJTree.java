@@ -18,13 +18,15 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	private final DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
 	private byte[] content;
 	private final IExtensionHelpers helpers;
+	private final IBurpExtenderCallbacks callbacks;
 	private int bodyOffset;
 
-	JsonJTree(IExtensionHelpers helpers) {
+	JsonJTree(IBurpExtenderCallbacks callbacks) {
         tree.getSelectionModel().setSelectionMode
                 (TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.addMouseListener(this);
-		this.helpers = helpers;
+		this.callbacks = callbacks;
+		this.helpers = callbacks.getHelpers();
 	}
 
 	@Override public void mousePressed (MouseEvent e) { if (e.isPopupTrigger()) doPop(e); }

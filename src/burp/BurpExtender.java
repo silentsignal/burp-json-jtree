@@ -4,18 +4,18 @@ import java.util.*;
 
 public class BurpExtender implements IBurpExtender, IMessageEditorTabFactory
 {
-	IExtensionHelpers helpers;
+	IBurpExtenderCallbacks callbacks;
 
 	@Override
 	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks)
 	{
 		callbacks.setExtensionName("JSON JTree");
 		callbacks.registerMessageEditorTabFactory(this);
-		this.helpers = callbacks.getHelpers();
+		this.callbacks = callbacks;
 	}
 
 	@Override
 	public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
-		return new JsonJTree(helpers);
+		return new JsonJTree(callbacks);
 	}
 }
