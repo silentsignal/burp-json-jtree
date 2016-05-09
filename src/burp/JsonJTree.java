@@ -5,6 +5,7 @@ import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.*;
 
 import javax.swing.*;
 import javax.swing.tree.*;
@@ -20,6 +21,8 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	private final IExtensionHelpers helpers;
 	private final IBurpExtenderCallbacks callbacks;
 	private int bodyOffset;
+	private static final Pattern JWT_RE = Pattern.compile(
+			"(?:[-_A-Z0-9]+\\.){2}[-_A-Z0-9]+", Pattern.CASE_INSENSITIVE);
 
 	JsonJTree(IBurpExtenderCallbacks callbacks) {
         tree.getSelectionModel().setSelectionMode
@@ -55,6 +58,14 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 					copyString(value);
 				}
 			});
+
+			if (mayBeJwt(value)) {
+				addToPopup(popup, "Convert JWT to EsPReSSO format", new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						convertJwt(value);
+					}
+				});
+			}
 		}
 
 		addToPopup(popup, "Copy value as JSON", new ActionListener() {
@@ -63,7 +74,22 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 			}
 		});
 
+
 		popup.show(e.getComponent(), e.getX(), e.getY());
+	}
+
+	private static boolean mayBeJwt(final String value) {
+		return JWT_RE.matcher(value).matches();
+	}
+
+	private void convertJwt(final String jwt) {
+		final java.util.List<String> headers = Arrays.asList(
+				"GET / HTTP/1.0",
+				"Content-Type: application/x-www-form-urlencoded",
+				"X-Message: dummy request, do not send!");
+		final byte[] body = helpers.stringToBytes("access_token=" + jwt);
+		final byte[] request = helpers.buildHttpMessage(headers, body);
+		callbacks.sendToRepeater("example.com", 80, false, request, "JWT");
 	}
 
 	private static void addToPopup(JPopupMenu pm, String title, ActionListener al) {
