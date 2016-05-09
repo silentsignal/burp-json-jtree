@@ -48,9 +48,11 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		}
 
 		if (!item.isArrayOrObject()) {
+			final String value = item.asValueString();
+
 			addToPopup(popup, "Copy value as string", new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					copyString(item.asValueString());
+					copyString(value);
 				}
 			});
 		}
