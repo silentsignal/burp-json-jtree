@@ -20,7 +20,6 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	private byte[] content;
 	private final IExtensionHelpers helpers;
 	private final IBurpExtenderCallbacks callbacks;
-	private int bodyOffset;
 	private static final Pattern JWT_RE = Pattern.compile(
 			"(?:[-_A-Z0-9]+\\.){2}[-_A-Z0-9]+", Pattern.CASE_INSENSITIVE);
 
@@ -104,33 +103,90 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	}
 
 	public boolean isEnabled(byte[] content, boolean isRequest) {
-		int len = content.length;
-		if (len == 0) {
+		if (content.length == 0) {
 			root.removeAllChildren();
 			model.reload(root);
 			return false;
 		}
-		if (isRequest) {
-			IRequestInfo i = helpers.analyzeRequest(content);
-			bodyOffset = i.getBodyOffset();
-		} else {
-			IResponseInfo i = helpers.analyzeResponse(content);
-			bodyOffset = i.getBodyOffset();
-		}
-		return (len - bodyOffset >= 2) &&
-			content[bodyOffset] == (byte)'{' && content[len - 1] == (byte)'}';
+		return !Encoding.parse(content, isRequest, helpers).isEmpty();
 		// TODO try parsing at this stage
+	}
+
+	public enum Encoding {
+		RAW_JSON {
+			protected void parse(Vector<Part> dest, byte[] content, int bodyOffset,
+					IRequestInfo req, IExtensionHelpers helpers) {
+				final String value = helpers.bytesToString(Arrays.copyOfRange(
+							content, bodyOffset, content.length));
+				if (!detectJson(value)) return;
+				dest.add(new Part() {
+					public String decode() { return value; }
+				});
+			}
+		},
+
+		PARAM_JSON {
+			protected void parse(Vector<Part> dest, byte[] content, int bodyOffset,
+					IRequestInfo req, IExtensionHelpers helpers) {
+				if (req == null) return;
+				java.util.List<IParameter> params = req.getParameters();
+				ArrayList<Part> parts = new ArrayList<>(params.size());
+				for (IParameter param : params) {
+					String value = param.getValue();
+					for (final String s : new String[] {value, helpers.urlDecode(value)}) {
+						if (!detectJson(s)) continue;
+						dest.add(new Part() {
+							public String decode() { return s; }
+							// TODO toString for JComboBox
+						});
+					}
+				}
+			}
+		};
+
+		public interface Part {
+			public String decode();
+		}
+
+		protected abstract void parse(Vector<Part> dest, byte[] content,
+				int bodyOffset, IRequestInfo req, IExtensionHelpers helpers);
+
+		private static boolean detectJson(String value) {
+			int len = value.length();
+			return len >= 2 && value.charAt(0) == '{' && value.charAt(len - 1) == '}';
+		}
+
+		public static Vector<Part> parse(byte[] content, boolean isRequest,
+				IExtensionHelpers helpers) {
+			IRequestInfo req = null;
+			int bodyOffset;
+			if (isRequest) {
+				req = helpers.analyzeRequest(content);
+				bodyOffset = req.getBodyOffset();
+			} else {
+				IResponseInfo i = helpers.analyzeResponse(content);
+				bodyOffset = i.getBodyOffset();
+			}
+			Vector<Part> parts = new Vector<>();
+			for (Encoding e : values()) {
+				e.parse(parts, content, bodyOffset, req, helpers);
+			}
+			return parts;
+		}
 	}
 
 	public void setMessage(byte[] content, boolean isRequest) {
 		this.content = content;
 		root.removeAllChildren();
 		if (content != null) {
-			Json node = Json.read(new String(content, bodyOffset,
-						content.length - bodyOffset, StandardCharsets.UTF_8));
-			// TODO UTF-8?
-			root.setUserObject(new Node(null, node));
-			dumpObjectNode(root, node);
+			Vector<Encoding.Part> parts = Encoding.parse(content, isRequest, helpers);
+			if (parts.size() == 1) {
+				Json node = Json.read(parts.get(0).decode());
+				root.setUserObject(new Node(null, node));
+				dumpObjectNode(root, node);
+			} else {
+				// TODO create JComboBox
+			}
 		} else {
 			root.setUserObject(new Node(null, null));
 		}
