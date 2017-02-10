@@ -112,6 +112,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		// TODO try parsing at this stage
 	}
 
+	private final static int MIN_LEN = 2;
 	private void detectRawJson(Vector<Part> dest, byte[] content, int bodyOffset,
 			IRequestInfo req) {
 		addIfJson(dest, helpers.bytesToString(Arrays.copyOfRange(
@@ -138,7 +139,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 
 	private static void addIfJson(Vector<Part> dest, String value) {
 		int len = value.length();
-		if (len >= 2 && value.charAt(0) == '{' && value.charAt(len - 1) == '}') {
+		if (len >= MIN_LEN && value.charAt(0) == '{' && value.charAt(len - 1) == '}') {
 			dest.add(new Part() {
 				public String decode() { return value; }
 			});
