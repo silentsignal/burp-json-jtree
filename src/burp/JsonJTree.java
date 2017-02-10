@@ -115,8 +115,10 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	private final static int MIN_LEN = 2;
 	private void detectRawJson(Vector<Part> dest, byte[] content, int bodyOffset,
 			IRequestInfo req) {
-		addIfJson(dest, helpers.bytesToString(Arrays.copyOfRange(
-					content, bodyOffset, content.length)));
+		final int len = content.length;
+		final int bodyLen = len - bodyOffset;
+		if (bodyLen < MIN_LEN) return;
+		addIfJson(dest, helpers.bytesToString(Arrays.copyOfRange(content, bodyOffset, len)));
 	}
 
 	private void detectParamJson(Vector<Part> dest, byte[] content, int bodyOffset,
