@@ -112,12 +112,18 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		// TODO try parsing at this stage
 	}
 
+	private final static byte[] BOM_UTF8 = {(byte)0xEF, (byte)0xBB, (byte)0xBF};
 	private final static int MIN_LEN = 2;
+
 	private void detectRawJson(Vector<Part> dest, byte[] content, int bodyOffset,
 			IRequestInfo req) {
 		final int len = content.length;
 		final int bodyLen = len - bodyOffset;
 		if (bodyLen < MIN_LEN) return;
+		byte[] firstThreeBytes = Arrays.copyOfRange(content,
+				bodyOffset, bodyOffset + BOM_UTF8.length);
+		if (Arrays.equals(firstThreeBytes, BOM_UTF8) &&
+				bodyLen > BOM_UTF8.length + MIN_LEN) bodyOffset += BOM_UTF8.length;
 		addIfJson(dest, helpers.bytesToString(Arrays.copyOfRange(content, bodyOffset, len)));
 	}
 
