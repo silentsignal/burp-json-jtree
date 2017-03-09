@@ -17,6 +17,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	private final JPanel panel = new JPanel(new BorderLayout());
     private final DefaultMutableTreeNode root = new DefaultMutableTreeNode();
 	private final JTree tree = new JTree(root);
+	private final JComboBox<Part> comboBox = new JComboBox<>();
 	private final DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
 	private byte[] content;
 	private final IExtensionHelpers helpers;
@@ -30,6 +31,18 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		tree.addMouseListener(this);
 		this.callbacks = callbacks;
 		this.helpers = callbacks.getHelpers();
+		comboBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				root.removeAllChildren();
+				Part part = comboBox.getItemAt(comboBox.getSelectedIndex());
+				Json node = Json.read(part.decode());
+				root.setUserObject(new Node(null, node));
+				dumpObjectNode(root, node);
+				model.reload(root);
+				expandAllNodes(tree, 0, tree.getRowCount());
+			}
+		});
+		panel.add(comboBox, BorderLayout.NORTH);
 		panel.add(new JScrollPane(tree), BorderLayout.CENTER);
 	}
 
@@ -126,7 +139,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 				bodyOffset, bodyOffset + BOM_UTF8.length);
 		if (Arrays.equals(firstThreeBytes, BOM_UTF8) &&
 				bodyLen > BOM_UTF8.length + MIN_LEN) bodyOffset += BOM_UTF8.length;
-		addIfJson(dest, helpers.bytesToString(Arrays.copyOfRange(content, bodyOffset, len)));
+		addIfJson(dest, helpers.bytesToString(Arrays.copyOfRange(content, bodyOffset, len)), null);
 	}
 
 	private void detectParamJson(Vector<Part> dest, byte[] content, int bodyOffset,
@@ -137,8 +150,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		for (IParameter param : params) {
 			String value = param.getValue();
 			for (final String s : new String[] {value, helpers.urlDecode(value)}) {
-				addIfJson(dest, s);
-				// TODO toString for JComboBox
+				addIfJson(dest, s, param);
 			}
 		}
 	}
@@ -147,12 +159,32 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		public String decode();
 	}
 
-	private static void addIfJson(Vector<Part> dest, String value) {
+	private static void addIfJson(Vector<Part> dest, String value, IParameter param) {
 		int len = value.length();
 		if (len >= MIN_LEN && value.charAt(0) == '{' && value.charAt(len - 1) == '}') {
 			dest.add(new Part() {
 				public String decode() { return value; }
+
+				@Override
+				public String toString() {
+					if (param == null) return "HTTP body";
+					return parameterTypeToString(param.getType()) +
+						" \"" + param.getName() + '"';
+				}
 			});
+		}
+	}
+
+	private static String parameterTypeToString(final byte type) {
+		switch (type) {
+			case IParameter.PARAM_URL: return "URL parameter";
+			case IParameter.PARAM_BODY: return "Body parameter";
+			case IParameter.PARAM_COOKIE: return "HTTP cookie";
+			case IParameter.PARAM_XML: return "XML element";
+			case IParameter.PARAM_XML_ATTR: return "XML attribute";
+			case IParameter.PARAM_MULTIPART_ATTR: return "MIME multipart attribute";
+			case IParameter.PARAM_JSON: return "JSON item";
+			default: return "Unknown parameter";
 		}
 	}
 
@@ -181,8 +213,11 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 				Json node = Json.read(parts.get(0).decode());
 				root.setUserObject(new Node(null, node));
 				dumpObjectNode(root, node);
+				comboBox.setVisible(false);
 			} else {
-				// TODO create JComboBox
+				comboBox.setModel(new DefaultComboBoxModel<>(parts));
+				comboBox.setSelectedIndex(0);
+				comboBox.setVisible(true);
 			}
 		} else {
 			root.setUserObject(new Node(null, null));
