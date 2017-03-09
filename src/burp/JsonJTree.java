@@ -14,6 +14,7 @@ import mjson.Json;
 
 public class JsonJTree extends MouseAdapter implements IMessageEditorTab, ClipboardOwner
 {
+	private final JPanel panel = new JPanel(new BorderLayout());
     private final DefaultMutableTreeNode root = new DefaultMutableTreeNode();
 	private final JTree tree = new JTree(root);
 	private final DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
@@ -29,6 +30,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		tree.addMouseListener(this);
 		this.callbacks = callbacks;
 		this.helpers = callbacks.getHelpers();
+		panel.add(new JScrollPane(tree), BorderLayout.CENTER);
 	}
 
 	@Override public void mousePressed (MouseEvent e) { if (e.isPopupTrigger()) doPop(e); }
@@ -258,7 +260,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	}
 
 	public String getTabCaption() { return "JSON JTree"; }
-	public Component getUiComponent() { return new JScrollPane(tree); }
+	public Component getUiComponent() { return panel; }
 	public byte[] getMessage() { return content; }
 	public boolean isModified() { return false; }
 	public byte[] getSelectedData() { return null; }
