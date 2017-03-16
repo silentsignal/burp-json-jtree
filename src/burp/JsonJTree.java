@@ -3,7 +3,8 @@ package burp;
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.event.*;
-import java.nio.charset.StandardCharsets;
+import java.nio.*;
+import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
@@ -139,7 +140,18 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 				bodyOffset, bodyOffset + BOM_UTF8.length);
 		if (Arrays.equals(firstThreeBytes, BOM_UTF8) &&
 				bodyLen > BOM_UTF8.length + MIN_LEN) bodyOffset += BOM_UTF8.length;
-		addIfJson(dest, helpers.bytesToString(Arrays.copyOfRange(content, bodyOffset, len)), null);
+		addIfJson(dest, bytesToString(Arrays.copyOfRange(content, bodyOffset, len)), null);
+	}
+
+	private final CharsetDecoder utfDecoder = StandardCharsets.UTF_8.newDecoder().onMalformedInput(
+			CodingErrorAction.REPORT);
+
+	private String bytesToString(byte[] source) {
+		try {
+			return utfDecoder.decode(ByteBuffer.wrap(source)).toString();
+		} catch (CharacterCodingException e) {
+			return helpers.bytesToString(source);
+		}
 	}
 
 	private void detectParamJson(Vector<Part> dest, byte[] content, int bodyOffset,
