@@ -176,10 +176,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	}
 
 	private static void addIfJson(Vector<Part> dest, String value, IParameter param) {
-		int len = value.length();
-		if (len >= MIN_LEN && (
-				 (value.charAt(0) == '{' && value.charAt(len - 1) == '}') ||
-				 (value.charAt(0) == '[' && value.charAt(len - 1) == ']') )) {
+		if (mightBeJson(value)) {
 			dest.add(new Part() {
 				public String decode() { return value; }
 
@@ -191,6 +188,15 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 				}
 			});
 		}
+	}
+
+	private static boolean mightBeJson(final String value) {
+		final int len = value.length();
+		if (len < MIN_LEN) return false;
+		final char firstChar = value.charAt(0);
+		return
+			((firstChar | (byte)0x20) == (byte)0x7b) && // '[' = 0x5b, '{' = 0x7b, former missing bit 0x20
+			(value.charAt(len - 1) == firstChar + 2);   // ']' = 0x5d, '}' = 0x7d, offset is 2 for both
 	}
 
 	private static String parameterTypeToString(final byte type) {
