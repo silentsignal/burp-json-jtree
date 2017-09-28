@@ -305,6 +305,18 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		final DefaultMutableTreeNode node =
 			new DefaultMutableTreeNode(new Node(key, value));
 		dst.add(node);
+		// check if `value` is actually JSON serialized data "embedded" as string
+		if (value.isString()) {
+			// if so, deserialize and treat the result as first-class content
+			final String stringValue = value.asString();
+			if (mightBeJson(stringValue)) {
+				try {
+					value = Json.read(stringValue);
+				} catch (Exception e) {
+					// ignore fals positive
+				}
+			}
+		}
 		if (value.isObject()) {
 			dumpObjectNode(node, value);
 		} else if (value.isArray()) {
