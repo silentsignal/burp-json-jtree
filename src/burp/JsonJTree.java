@@ -279,7 +279,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		}
 	}
 
-	private void dumpObjectNode(DefaultMutableTreeNode dst, Json src) {
+	private static void dumpObjectNode(DefaultMutableTreeNode dst, Json src) {
 		Map<String, Json> tm = new TreeMap(String.CASE_INSENSITIVE_ORDER);
 		tm.putAll(src.asJsonMap());
 		for (Map.Entry<String, Json> e : tm.entrySet()) {
@@ -287,7 +287,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		}
 	}
 
-	private void dumpArrayNode(DefaultMutableTreeNode dst, Json src) {
+	private static void dumpArrayNode(DefaultMutableTreeNode dst, Json src) {
 		int i = 0;
 		for (Json value : src.asJsonList()) {
 			String key = '[' + String.valueOf(i++) + ']';
@@ -295,7 +295,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		}
 	}
 
-	private void processNode(DefaultMutableTreeNode dst, String key, Json value) {
+	private static void processNode(DefaultMutableTreeNode dst, String key, Json value) {
 		final DefaultMutableTreeNode node =
 			new DefaultMutableTreeNode(new Node(key, value));
 		dst.add(node);
@@ -306,7 +306,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		}
 	}
 
-	private void expandAllNodes(JTree tree, int startingIndex, int rowCount){
+	private static void expandAllNodes(JTree tree, int startingIndex, int rowCount){
 		for(int i=startingIndex;i<rowCount;++i){
 			tree.expandRow(i);
 		}
