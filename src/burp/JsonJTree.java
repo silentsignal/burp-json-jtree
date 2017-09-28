@@ -38,7 +38,11 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 				Part part = comboBox.getItemAt(comboBox.getSelectedIndex());
 				Json node = Json.read(part.decode());
 				root.setUserObject(new Node(null, node));
-				dumpObjectNode(root, node);
+				if (node.isObject()) {
+					dumpObjectNode(root, node);
+				} else if (node.isArray()) {
+					dumpArrayNode(root, node);
+				}
 				model.reload(root);
 				expandAllNodes(tree, 0, tree.getRowCount());
 			}
@@ -173,7 +177,9 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 
 	private static void addIfJson(Vector<Part> dest, String value, IParameter param) {
 		int len = value.length();
-		if (len >= MIN_LEN && value.charAt(0) == '{' && value.charAt(len - 1) == '}') {
+		if (len >= MIN_LEN && (
+				 (value.charAt(0) == '{' && value.charAt(len - 1) == '}') ||
+				 (value.charAt(0) == '[' && value.charAt(len - 1) == ']') )) {
 			dest.add(new Part() {
 				public String decode() { return value; }
 
@@ -224,7 +230,11 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 			if (parts.size() == 1) {
 				Json node = Json.read(parts.get(0).decode());
 				root.setUserObject(new Node(null, node));
-				dumpObjectNode(root, node);
+				if (node.isObject()) {
+					dumpObjectNode(root, node);
+				} else if (node.isArray()) {
+					dumpArrayNode(root, node);
+				}
 				comboBox.setVisible(false);
 			} else {
 				comboBox.setModel(new DefaultComboBoxModel<>(parts));
