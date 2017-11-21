@@ -315,7 +315,7 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 				try {
 					value = Json.read(stringValue);
 				} catch (Exception e) {
-					// ignore fals positive
+					// ignore false positive
 				}
 			}
 		}
