@@ -327,11 +327,11 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	}
 
 	private static void expandAllNodes(JTree tree, int startingIndex, int rowCount) {
-		for(int i=startingIndex;i<rowCount;++i){
+		for (int i = startingIndex; i < rowCount; i++) {
 			tree.expandRow(i);
 		}
 
-		if(tree.getRowCount()!=rowCount){
+		if (tree.getRowCount() != rowCount) {
 			expandAllNodes(tree, rowCount, tree.getRowCount());
 		}
 	}
