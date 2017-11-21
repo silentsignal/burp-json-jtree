@@ -165,7 +165,9 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		ArrayList<Part> parts = new ArrayList<>(params.size());
 		for (IParameter param : params) {
 			String value = param.getValue();
-			for (final String s : new String[] {value, helpers.urlDecode(value)}) {
+			java.util.List<String> candidates = new ArrayList<String>(
+					Arrays.asList(value, helpers.urlDecode(value)));
+			for (final String s : candidates) {
 				addIfJson(dest, s, param);
 			}
 		}
