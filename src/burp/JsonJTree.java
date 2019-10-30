@@ -158,6 +158,46 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		}
 	}
 
+	private enum Base64Variant {
+		STANDARD("/+"),
+		URL_SAFE("_-") {
+			private String decode(IExtensionHelpers helpers, String value) {
+				String c14n = value;
+				for (int i = 0; i < nonAlNums.length(); i++) {
+					c14n = c14n.replace(nonAlNums.charAt(i), STANDARD.nonAlNums.charAt(i));
+				}
+				return super.decode(helpers, c14n);
+			}
+		};
+
+		protected final String nonAlNums;
+		private final Pattern pattern;
+
+		private Base64Variant(String nonAlNums) {
+			this.nonAlNums = nonAlNums;
+			pattern = Pattern.compile("[a-zA-Z0-9" + nonAlNums + "]+");
+		}
+
+		public static void tryAll(IExtensionHelpers helpers, Set<String> matches, String value) {
+			for (Base64Variant variant : Base64Variant.values()) {
+				variant.tryMatch(helpers, matches, value);
+			}
+		}
+
+		private void tryMatch(IExtensionHelpers helpers, Set<String> matches, String value) {
+			Matcher m = pattern.matcher(value);
+			int start = 0;
+			while (m.find(start)) {
+				matches.add(decode(helpers, m.group()));
+				start = m.end();
+			}
+		}
+
+		private String decode(IExtensionHelpers helpers, String value) {
+			return helpers.bytesToString(helpers.base64Decode(value));
+		}
+	}
+
 	private void detectParamJson(Vector<Part> dest, byte[] content, int bodyOffset,
 			IRequestInfo req) {
 		if (req == null) return;
@@ -165,8 +205,9 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 		ArrayList<Part> parts = new ArrayList<>(params.size());
 		for (IParameter param : params) {
 			String value = param.getValue();
-			java.util.List<String> candidates = new ArrayList<String>(
+			Set<String> candidates = new HashSet<String>(
 					Arrays.asList(value, helpers.urlDecode(value)));
+			Base64Variant.tryAll(helpers, candidates, value);
 			for (final String s : candidates) {
 				addIfJson(dest, s, param);
 			}
