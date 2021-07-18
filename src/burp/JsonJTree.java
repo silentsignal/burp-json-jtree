@@ -93,8 +93,30 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 			}
 		});
 
+		popup.addSeparator();
+
+		addToPopup(popup, "Collapse full tree", new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				collapseChildren(root);
+			}
+		});
+
+		if (node != root) {
+			addToPopup(popup, "Collapse subtree below this node", new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					collapseChildren(node);
+				}
+			});
+		}
 
 		popup.show(e.getComponent(), e.getX(), e.getY());
+	}
+
+	private void collapseChildren(DefaultMutableTreeNode node) {
+		final ArrayList<DefaultMutableTreeNode> list = Collections.list(node.children());
+		for (DefaultMutableTreeNode child : list) collapseChildren(child);
+		if (node.isRoot()) return;
+		tree.collapsePath(new TreePath(node.getPath()));
 	}
 
 	private static boolean mayBeJwt(final String value) {
