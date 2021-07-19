@@ -113,8 +113,8 @@ public class JsonJTree extends MouseAdapter implements IMessageEditorTab, Clipbo
 	}
 
 	private void collapseChildren(DefaultMutableTreeNode node) {
-		final ArrayList<DefaultMutableTreeNode> list = Collections.list(node.children());
-		for (DefaultMutableTreeNode child : list) collapseChildren(child);
+		final ArrayList list = Collections.list(node.children());
+		for (Object child : list) collapseChildren((DefaultMutableTreeNode)child);
 		if (node.isRoot()) return;
 		tree.collapsePath(new TreePath(node.getPath()));
 	}
